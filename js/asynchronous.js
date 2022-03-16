@@ -135,3 +135,93 @@ const getCountryAndNeighbourData = function (country) {
 getCountryAndNeighbourData("usa");
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Promises and the Fetch API
+// Promise - An object that is used as an placeholder for the future result of an asynchronously delivered value.
+// Promise - A container for an asynchronously delivered value.
+// Promise - A container for a future value
+// Promise - It has three states - Pending Promise, Settled Promise has 2 types - Fulfilled Promise, Rejected Promise
+// Promise - Promise will be settled only once
+// Fullfilled promise - Success! The value is available
+// Rejected Promise - There was some error during the async task
+
+// Syntax
+const request = fetch(`https://restcountries.com/v2/name/portugal`);
+console.log(request); // Result - Promise {<pending>}
+
+// Consuming Promises
+// Detailed Code:
+const getCountryData1 = function (country) {
+  fetch(`https://restcountries.com/v2/name/${country}`) // fetch will return a promise. Now use the then method onto it to handle the promise
+    .then(function (response) {
+      console.log(response); // response is the result of the fetch method.
+      return response.json(); // response.json() will return a new promise. json() is used to read the data.
+    })
+    .then(function (data) {
+      console.log(data); // Result - [{…}]
+
+      const [dataOne] = data;
+      console.log(dataOne); // Result - {name: 'Portugal', topLevelDomain: Array(1), alpha2Code: 'PT', alpha3Code: 'PRT', callingCodes: Array(1), …}
+
+      // Calling the renderCountry function
+      renderCountry(dataOne); // Result - This will render the data to the UI
+    });
+};
+
+getCountryData1("portugal");
+
+// Simplified Code:
+const getCountryData2 = (country) => {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+      console.log(data);
+      const [dataOne] = data;
+      renderCountry(dataOne);
+    });
+};
+
+getCountryData2("portugal");
+
+////////////////////////////////////////////////////////
+// Chaining Promises
+const getCountryAndNeighbourData1 = (country) => {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => {
+      return response.json();
+    })
+    .then((datafetchOne) => {
+      console.log(datafetchOne); // Result - [{…}]
+      const [dataOne] = datafetchOne;
+      console.log(dataOne);
+
+      renderCountry(dataOne);
+
+      // Check for Neighbour Countries
+      const neighbourData = dataOne.borders;
+      console.log(neighbourData); // Result - ['CAN', 'MEX']
+
+      const [neighbour] = dataOne.borders;
+      console.log(neighbour); // Result - CAN
+
+      if (!neighbour) return;
+
+      return fetch(`https://restcountries.com/v2/alpha/${neighbour}`);
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((dataFetchTwo) => {
+      console.log(dataFetchTwo); // Result - {…}
+
+      const dataTwo = dataFetchTwo;
+      console.log(dataTwo); // Result - {…}
+      renderCountry(dataTwo);
+    });
+};
+
+getCountryAndNeighbourData1("usa");
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
