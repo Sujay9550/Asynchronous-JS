@@ -225,3 +225,114 @@ const getCountryAndNeighbourData1 = (country) => {
 getCountryAndNeighbourData1("usa");
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Handling Rejected Promises - Handling Errors also known as Catching Errors
+
+// Creating Error Message function
+const renderError = function (msg) {
+  countriesContainer.insertAdjacentText("beforeend", msg);
+};
+
+// Creating a function to get country and neighbour country data
+const getCountryAndNeighbourData2 = (country) => {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => {
+      return response.json();
+    })
+    .then((dataFetchOne) => {
+      console.log(dataFetchOne);
+
+      const [dataOne] = dataFetchOne;
+      console.log(dataOne); // Result - [{…}]
+      renderCountry(dataOne);
+
+      const neighbourData = dataOne.borders;
+      console.log(neighbourData); // Result - ['CAN', 'MEX']
+
+      const [neighbour] = dataOne.borders;
+      console.log(neighbour); // Result - CAN
+
+      if (!neighbour) return;
+
+      return fetch(`https://restcountries.com/v2/alpha/${neighbour}`);
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((dataFetchTwo) => {
+      console.log(dataFetchTwo); // Result - {…}
+
+      const dataTwo = dataFetchTwo;
+      console.log(dataTwo); // Result - {…}
+      renderCountry(dataTwo);
+    })
+    .catch((err) => {
+      console.error(`${err}`);
+      renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    }) // it will handle/catch the error
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    }); // this will execute no matter whether we get a Response or Error.
+};
+
+// Getting the data on click of the button
+btn.addEventListener("click", () => {
+  getCountryAndNeighbourData2("germany");
+});
+
+// Throwing Errors Manually
+const getCountryAndNeighbourData3 = (country) => {
+  fetch(`https://restcountries.com/v2/name/${country}`)
+    .then((response) => {
+      console.log(response);
+
+      // Error Handling - 1
+      if (!response.ok) throw new Error(`Country Not Found ${response.status}`); // response.ok = false, response.status = 404
+
+      return response.json();
+    })
+    .then((dataFetchOne) => {
+      console.log(dataFetchOne);
+
+      const [dataOne] = dataFetchOne;
+      console.log(dataOne);
+      renderCountry(dataOne);
+
+      const neighbourData = dataOne.borders;
+      console.log(neighbourData);
+
+      const [neighbour] = dataOne.borders;
+      console.log(neighbour);
+
+      return fetch(`https://restcountries.com/v2/alpha/${neighbour}`);
+    })
+    .then((response) => {
+      console.log(response);
+
+      // Error handling - 2
+      if (!response.ok) throw new Error(`Country Not Found ${response.status}`); // response.ok = false, response.status = 404
+
+      return response.json();
+    })
+    .then((dataFetchTwo) => {
+      console.log(dataFetchTwo);
+
+      const dataTwo = dataFetchTwo;
+      console.log(dataTwo);
+      renderCountry(dataTwo);
+    })
+    .catch((err) => {
+      console.error(`${err} 🙁🙁🙁`);
+      renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
+};
+
+// Getting the data on click of the button
+btn.addEventListener("click", () => {
+  getCountryAndNeighbourData3("germanyg");
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
