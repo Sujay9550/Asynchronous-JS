@@ -336,3 +336,108 @@ btn.addEventListener("click", () => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Throwing Errors Manually - Refactored/Simplified Code
+// Creating a reusable getJSON function
+const getJSON = (url, errorMsg = `Something Went Wrong`) => {
+  return fetch(url).then((response) => {
+    console.log(response);
+
+    // Error Handling
+    if (!response.ok) throw new Error(`${errorMsg} ${response.status}`);
+
+    return response.json();
+  });
+};
+
+// Creating a function to get the Country and Neighbour data
+const getCountryAndNeighbourData4 = (country) => {
+  getJSON(`https://restcountries.com/v2/name/${country}`, "Country Not Found")
+    .then((dataFetchOne) => {
+      console.log(dataFetchOne);
+
+      const [dataOne] = dataFetchOne;
+      console.log(dataOne);
+      renderCountry(dataOne);
+
+      const neighbourData = dataOne.borders;
+      console.log(neighbourData);
+
+      const [neighbour] = dataOne.borders;
+      console.log(neighbour);
+
+      if (!neighbour) throw new Error("Neighbour Not Found");
+
+      return getJSON(
+        `https://restcountries.com/v2/alpha/${neighbour}`,
+        "Country Not Found"
+      );
+    })
+    .then((dataFetchTwo) => {
+      console.log(dataFetchTwo);
+
+      const dataTwo = dataFetchTwo;
+      console.log(dataTwo);
+      renderCountry(dataTwo);
+    })
+    .catch((err) => {
+      console.log(`${err} 🙁🙁🙁`);
+      renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
+};
+
+btn.addEventListener("click", () => {
+  getCountryAndNeighbourData4("germany");
+});
+
+// Exercise: 1 - Getting the geolocation data
+const getLocation = (lat, lng) => {
+  fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`)
+    .then((response) => {
+      console.log(response);
+
+      if (!response.ok)
+        throw new Error(`Problem With Geocoding ${response.status}`);
+
+      return response.json();
+    })
+    .then((locationFetch) => {
+      console.log(locationFetch);
+      console.log(`You are in ${locationFetch.city}, ${locationFetch.country}`);
+
+      return fetch(
+        `https://restcountries.com/v2/name/${locationFetch.country}`
+      );
+    })
+    .then((response) => {
+      console.log(response);
+
+      if (!response.ok) throw new Error(`Country Not Found ${response.status}`);
+
+      return response.json();
+    })
+    .then((dataFetch) => {
+      console.log(dataFetch);
+
+      const [dataOne] = dataFetch;
+      console.log(dataOne);
+      renderCountry(dataOne);
+    })
+    .catch((err) => {
+      console.error(`${err} 🙁🙁🙁`);
+      console.log(`${err.message}`);
+      renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
+};
+
+getLocation(52.508, 13.381);
+getLocation(19.037, 72.873);
+getLocation(-33.933, 18.474);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
