@@ -441,3 +441,100 @@ getLocation(19.037, 72.873);
 getLocation(-33.933, 18.474);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Asynchronous Behind the Scenes
+// Regular Callbacks goes into Callback Queue
+// Callbacks of the promises goes into MICROTASKS QUEUE. Callbacks of the promises are called Microtasks
+// MICROTASKS QUEUE - This has priority over the callback queue
+
+// Event Loop in Practice (Can be used for explanation)
+console.log("Test Start");
+
+setTimeout(() => {
+  console.log("Zero Second Timer");
+}, 0);
+
+Promise.resolve("Resolved Promise 1").then((res) => {
+  console.log(res);
+});
+
+Promise.resolve("Resolved Promise 2").then((res) => {
+  for (let i = 0; i < 1000000000; i++) {}
+
+  console.log(res);
+});
+
+console.log("Test End");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Building a Simple Promise
+// A Promise contains one function called Executer function. Executer function carries 2 parameters called resolve, reject
+const lotteryPromise = new Promise(function (resolve, reject) {
+  console.log("Lottery draw is happening");
+
+  setTimeout(() => {
+    if (Math.random() >= 0.5) {
+      resolve("You Win 💰");
+    } else {
+      reject(new Error("You lost your money"));
+    }
+  }, 2000);
+});
+
+// Consuming the built promise
+lotteryPromise
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
+// Promisifying - This means converting Callback based asynchronous behaviour to Promise based asynchronous behaviour
+
+// Promisifying the setTimeout Function
+const wait = (seconds) => {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+// Consuming the Promise
+wait(2)
+  .then(() => {
+    console.log("I waited for 2 seconds");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("I waited for 1 seconds");
+  });
+
+wait(1)
+  .then(() => {
+    console.log("1 Second Passed");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("2 Second Passed");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("3 Second Passed");
+    return wait(1);
+  })
+  .then(() => {
+    console.log("4 Second Passed");
+    return wait(1);
+  });
+
+// Creating Resolved and Rejected Promises immediately
+Promise.resolve("This Promise is Resolved").then((res) => {
+  console.log(res);
+});
+
+Promise.reject("This Promise is Rejected").catch((err) => {
+  console.error(err);
+});
+
+////////////////////////////////////////////////////////////
