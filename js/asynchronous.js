@@ -538,3 +538,152 @@ Promise.reject("This Promise is Rejected").catch((err) => {
 });
 
 ////////////////////////////////////////////////////////////
+
+// Promisifying the Geolocation API
+// Geolocation API - accepts the 2 callback functions. One is the success function & the other is Error function
+
+// General Method
+const getPositionGM = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve(position);
+      },
+      (err) => {
+        reject(err);
+      }
+    );
+  });
+};
+
+// Consuming Promise
+getPositionGM()
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
+// Improved Method
+const getPosition = function () {
+  return new Promise(function (resolve, reject) {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+getPosition()
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
+// Exercise 1: Improving by getting the User Location Data
+const getLocation1 = () => {
+  getPosition()
+    .then((response) => {
+      console.log(response);
+
+      // Destructuring latitude and longitude
+      const { latitude: lat, longitude: lng } = response.coords;
+      console.log(lat, lng);
+
+      // Returning a new promise
+      return fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+    })
+    .then((response) => {
+      console.log(response);
+
+      if (!response.ok)
+        throw new Error(`Problem With Geocoding ${response.status}`);
+
+      // Returning new Promise
+      return response.json();
+    })
+    .then((locationFetch) => {
+      console.log(locationFetch);
+      console.log(`You are in ${locationFetch.city}, ${locationFetch.country}`);
+
+      // Returning new Promise
+      return fetch(
+        `https://restcountries.com/v2/name/${locationFetch.country}`
+      );
+    })
+    .then((response) => {
+      console.log(response);
+
+      if (!response.ok) throw new Error(`Country Not Found ${response.status}`);
+
+      // Returning new Promise
+      return response.json();
+    })
+    .then((dataFetch) => {
+      console.log(dataFetch);
+
+      // Destructuring the Data
+      const [dataOne, dataTwo] = dataFetch;
+
+      // Rendering the Data
+      renderCountry(dataTwo);
+    })
+    .catch((err) => {
+      console.log(`${err} 🙁🙁🙁`);
+      console.error(`${err.message}`);
+      renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
+};
+
+btn.addEventListener("click", getLocation1);
+
+// Exercise 2:
+const wait1 = (seconds) => {
+  return new Promise(function (resolve, reject) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+const createImage = (imgPath) => {
+  return new Promise(function (resolve, reject) {
+    const img = document.createElement("img");
+    img.src = imgPath;
+
+    img.addEventListener("load", function () {
+      imagesContainer.append(img);
+      resolve(img);
+    });
+
+    img.addEventListener("error", function () {
+      reject(new Error("Image Not Found"));
+    });
+  });
+};
+
+// Global Variable
+let currentImage;
+
+createImage("img/img-1.jpg")
+  .then((img) => {
+    currentImage = img;
+    console.log("Image 1 Loaded");
+    return wait1(2);
+  })
+  .then(() => {
+    currentImage.style.display = "none";
+    return createImage("img/img-2.jpg");
+  })
+  .then((img) => {
+    currentImage = img;
+    console.log("Image 2 Loaded");
+    return wait1(2);
+  })
+  .then(() => {
+    currentImage.style.display = "none";
+  })
+  .catch((err) => {
+    console.error(err);
+  });
