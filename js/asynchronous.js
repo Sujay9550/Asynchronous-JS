@@ -687,3 +687,175 @@ createImage("img/img-1.jpg")
   .catch((err) => {
     console.error(err);
   });
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Consuming Promises with Async/Await
+// Async - Async Function will always return a Promise
+// Await - will stop the code execution at this point untill the promise is fullfilled
+
+// Explanation
+const getLocation2 = async (country) => {
+  const response = await fetch(`https://restcountries.com/v2/name/${country}`);
+  console.log(response);
+
+  const responseJson = await response.json();
+  console.log(responseJson);
+
+  const [dataOne] = responseJson;
+  renderCountry(dataOne);
+};
+
+getLocation2("portugal");
+
+// Application/Illustration
+
+const getLocation3 = async () => {
+  // Geolocation
+  const position = await getPosition();
+  console.log(position);
+
+  // Destructuring latitude and longitude
+  const { latitude: lat, longitude: lng } = position.coords;
+  console.log(lat, lng);
+
+  // Reverse Geocoding
+  const responseGeo = await fetch(
+    `https://geocode.xyz/${lat},${lng}?geoit=json`
+  );
+  console.log(responseGeo);
+
+  const dataGeo = await responseGeo.json();
+  console.log(dataGeo);
+
+  const responseCountry = await fetch(
+    `https://restcountries.com/v2/name/${dataGeo.country}`
+  );
+  console.log(responseCountry);
+
+  const dataCountry = await responseCountry.json();
+  console.log(dataCountry);
+
+  const [dataOne, dataTwo] = dataCountry;
+  console.log(dataOne);
+  renderCountry(dataTwo);
+};
+
+getLocation3();
+
+// Error Handling in Async function with try and catch method
+const getLocation4 = async () => {
+  try {
+    const position = await getPosition();
+    console.log(position);
+
+    // Destructuring latitude and longitude
+    const { latitude: lat, longitude: lng } = position.coords;
+    console.log(lat, lng);
+
+    // Reverse Geocoding
+    const resGeo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+    console.log(resGeo);
+
+    // Error Handling 1:
+    if (!resGeo.ok) throw new Error(`Problem with Geocoding ${resGeo.status}`);
+
+    const dataGeo = await resGeo.json();
+    console.log(dataGeo);
+
+    const resCountry = await fetch(
+      `https://restcountries.com/v2/name/${dataGeo.country}`
+    );
+
+    console.log(resCountry);
+
+    // Error Handling 2:
+    if (!resCountry.ok)
+      throw new Error(`Country Not Found ${resCountry.status}`);
+
+    const dataCountry = await resCountry.json();
+    console.log(dataCountry);
+
+    // Destructuring countries
+    const [dataOne, dataTwo] = dataCountry;
+    renderCountry(dataTwo);
+  } catch (err) {
+    console.error(`${err} 🙁🙁🙁`);
+    renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+  }
+};
+
+btn.addEventListener("click", getLocation4);
+
+// Returning Values from Async Functions
+const getLocation5 = async () => {
+  try {
+    const position = await getPosition();
+    console.log(position);
+
+    // Destructuring latitude and longitude
+    const { latitude: lat, longitude: lng } = position.coords;
+    console.log(lat, lng);
+
+    // Reverse Geocoding
+    const resGeo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+    console.log(resGeo);
+
+    // Error handling 1:
+    if (!resGeo.ok) throw new Error(`Problem With Geocoding ${resGeo.status}`);
+
+    const dataGeo = await resGeo.json();
+    console.log(dataGeo);
+
+    const resCountry = await fetch(
+      `https://restcountries.com/v2/name/${dataGeo.country}`
+    );
+    console.log(resCountry);
+
+    // Error Handling 2:
+    if (!resCountry.ok)
+      throw new Error(`Country Not Found ${resCountry.status}`);
+
+    const dataCountry = await resCountry.json();
+    console.log(dataCountry);
+
+    // Destructuring Country Data
+    const [dataOne, dataTwo] = dataCountry;
+    renderCountry(dataTwo);
+
+    // Returning Values from async function
+    return `You are in ${dataGeo.city}, ${dataGeo.country}`;
+  } catch (err) {
+    console.error(`${err} 🙁🙁🙁`);
+    renderError(`Something Went Wrong 🙁🙁🙁 ${err.message}, Try Again!`);
+    countriesContainer.style.opacity = 1;
+
+    // Rethrowing Error - Reject Promise returned from async function
+    throw err;
+  }
+};
+
+console.log("1: Getting the location");
+
+// Getting the returned value from the async function - Old Method
+getLocation5()
+  .then((city) => {
+    console.log(`2: ${city}`);
+  })
+  .catch((err) => {
+    console.error(`${err.message}`);
+  })
+  .finally(() => {
+    console.log("3: Finished Getting Location");
+  });
+
+// Getting the returned value from the async function - Modern Method (Create async function using IIFE concept)
+(async function () {
+  try {
+    const city = await getLocation5();
+    console.log(`2: ${city}`);
+  } catch (err) {
+    console.error(`${err.message}`);
+  }
+  console.log("Finished Getting Location");
+})();
