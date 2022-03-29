@@ -859,3 +859,173 @@ getLocation5()
   }
   console.log("Finished Getting Location");
 })();
+
+// Running Promises Sequentially
+const get3Countries = async (c1, c2, c3) => {
+  try {
+    const [dataOne] = await getJSON(`https://restcountries.com/v2/name/${c1}`);
+    const [dataTwo] = await getJSON(`https://restcountries.com/v2/name/${c2}`);
+    const [dataThree] = await getJSON(
+      `https://restcountries.com/v2/name/${c3}`
+    );
+
+    console.log([dataOne.capital, dataTwo.capital, dataThree.capital]);
+  } catch (err) {
+    console.error(`${err}`);
+  }
+};
+
+get3Countries("portugal", "canada", "tanzania");
+
+// Running Promises in Parallel
+// Promise.all - will return a new promise that runs a series of promises together.
+// Note: If any one of the promise gets reject, then the whole promise.all gets rejects as well
+const get3Countries1 = async (c1, c2, c3) => {
+  try {
+    const data = await Promise.all([
+      getJSON(`https://restcountries.com/v2/name/${c1}`),
+      getJSON(`https://restcountries.com/v2/name/${c2}`),
+      getJSON(`https://restcountries.com/v2/name/${c3}`),
+    ]);
+
+    console.log(data);
+    console.log(
+      data.map((element) => {
+        return element[0].capital;
+      })
+    ); // Result - (3) [{…}, {…}, {…}]
+  } catch (err) {
+    console.error(`${err}`);
+  }
+};
+
+get3Countries1("portugal", "canada", "tanzania");
+
+// Other Promise Combinators: Race, AllSettled and Any
+
+// Promise.race - receives an array of promises and returns a promise.
+// Note: Promise.race - returns the first Settled promise (Either Fulfilled or Rejected)
+// Promise.race - returns only one result and not an array of results
+
+(async function () {
+  const result = await Promise.race([
+    getJSON(`https://restcountries.com/v2/name/italy`),
+    getJSON(`https://restcountries.com/v2/name/mexico`),
+    getJSON(`https://restcountries.com/v2/name/egypt`),
+  ]);
+
+  console.log(result[0]);
+})();
+
+const timeout = function (sec) {
+  return new Promise(function (_, reject) {
+    setTimeout(function () {
+      reject(new Error("Request Took Too Long"));
+    }, sec * 1000);
+  });
+};
+
+Promise.race([
+  getJSON(`https://restcountries.com/v2/name/mexico`),
+  timeout(1.5),
+])
+  .then((res) => {
+    console.log(res[0]);
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
+// Promise.allSettled - Takes an array of promises and returns an array of all the settled promises
+// Promise.allSettled - will return an array of results even if one of the promise is rejected
+
+Promise.allSettled([
+  Promise.resolve("Success"),
+  Promise.reject("Error"),
+  Promise.resolve("Another Success"),
+])
+  .then((res) => {
+    console.log(res); // Result - (3) [{…}, {…}, {…}]
+  })
+  .catch((err) => {
+    console.error(err);
+  });
+
+// Promise.any [ES2021] - takes an array of multiple promises and returns the first fulfilled promise
+// Promise.any - will ignore the rejected promises. The result will always be a fulfilled promise
+
+Promise.any([
+  Promise.resolve("Success"),
+  Promise.reject("Error"),
+  Promise.resolve("Another Success"),
+]).then((res) => {
+  console.log(res);
+});
+
+// Exercise 3: Improving the createImage function using Async Await Feature
+const wait2 = (seconds) => {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000);
+  });
+};
+
+const createImage2 = (imgPath) => {
+  return new Promise(function (resolve, reject) {
+    const img = document.createElement("img");
+    img.src = imgPath;
+
+    img.addEventListener("load", () => {
+      imagesContainer.append(img);
+      resolve(img);
+    });
+
+    img.addEventListener("error", () => {
+      reject(new Error("Image Not Found"));
+    });
+  });
+};
+
+// Part 1:
+
+const loadAndPause = async () => {
+  try {
+    // Load Image 1
+    let img = await createImage2("img/img-1.jpg");
+    console.log("Loaded Image 1");
+    await wait2(2);
+
+    img.style.display = "none";
+
+    // Load Image 2
+    img = await createImage2("img/img-2.jpg");
+    console.log("Loaded Image 2");
+    await wait2(2);
+
+    img.style.display = "none";
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// loadAndPause();
+
+// Part 2:
+const loadAll = async (imgArray) => {
+  try {
+    const imgs = imgArray.map(async (img) => {
+      return await createImage2(img);
+    });
+    console.log(imgs); // Result - [Promise, Promise, Promise]
+
+    const imgsElement = await Promise.all(imgs);
+    console.log(imgsElement); // Result - (3) [img, img, img]
+
+    imgsElement.forEach((element) => {
+      element.classList.add("parallel");
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+loadAll(["img/img-1.jpg", "img/img-2.jpg", "img/img-3.jpg"]);
